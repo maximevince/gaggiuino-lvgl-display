@@ -625,6 +625,7 @@
 /*API for FATFS (needs to be added separately). Uses f_open, f_read, etc*/
 
 // vnz0r -- ADDED THIS:
+#ifndef NATIVE
 #include <ff.h> // You can put this at the top of the header file
 typedef FF_DIR DIR; // Add this line
 
@@ -633,6 +634,8 @@ typedef FF_DIR DIR; // Add this line
     #define LV_FS_FATFS_LETTER 'S'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
     #define LV_FS_FATFS_CACHE_SIZE 512    /*>0 to cache this number of bytes in lv_fs_read()*/
 #endif
+
+#endif // NATIVE
 
 /*PNG decoder library*/
 #define LV_USE_PNG 0
