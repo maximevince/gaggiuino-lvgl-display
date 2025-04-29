@@ -4,6 +4,7 @@
 #include "lvgl.h"
 #include "lv_demo_widgets.h"
 #include "lv_drivers/sdl/sdl.h"
+#include "lv_gaggiuino_ui.h"
 
 #if LV_USE_LOG != 0
 static void lv_log_print_g_cb(const char * buf)
@@ -51,7 +52,7 @@ int main()
     lv_app_init();
 
     /* Draw demo widgets */
-    lv_demo_widgets();
+    lv_gaggiuino_ui_init();
 
     Uint32 lastTick = SDL_GetTicks();
     while(1) {
