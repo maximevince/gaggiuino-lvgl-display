@@ -6,6 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
+#include <stdio.h>
 #include "lv_gaggiuino_ui.h"
 #include "lvgl.h"
 
@@ -28,6 +29,20 @@ typedef enum {
     PAGE_COUNT
 } page_id_t;
 
+typedef enum {
+    OBJ_POPUP_MSG,
+    OBJ_PROFILE_1,
+    OBJ_PROFILE_2,
+    OBJ_PROFILE_3,
+    OBJ_PROFILE_4,
+    OBJ_COUNT
+} obj_id_t;
+
+typedef struct {
+    const char* name;
+    lv_obj_t* obj;
+} obj_lut_entry_t;
+
 /**********************
  *  STATIC PROTOTYPES
  **********************/
@@ -39,6 +54,7 @@ static void create_clean_screen(lv_obj_t * parent);
 static void create_settings_screen(lv_obj_t * parent);
 static void create_nav_bar(lv_obj_t * parent);
 static void nav_event_cb(lv_event_t * e);
+static void close_modal_cb(lv_event_t * e);
 
 /**********************
  *  STATIC VARIABLES
@@ -46,6 +62,17 @@ static void nav_event_cb(lv_event_t * e);
 static lv_obj_t * tv;  // Tab view for main navigation
 static lv_obj_t * splash_screen;
 static lv_timer_t * splash_timer;
+static lv_obj_t * popup_window;  // Modal window for messages
+
+// Object lookup table
+static obj_lut_entry_t obj_lut[] = {
+    [OBJ_POPUP_MSG] = {"popupMSG.t0", NULL},  // Will be initialized when popup is created
+    [OBJ_PROFILE_1] = {"home.qPf1", NULL},
+    [OBJ_PROFILE_2] = {"home.qPf2", NULL},
+    [OBJ_PROFILE_3] = {"home.qPf3", NULL},
+    [OBJ_PROFILE_4] = {"home.qPf4", NULL},
+    [OBJ_COUNT] = {NULL, NULL}  // Terminator entry
+};
 
 static void splash_timer_cb(lv_timer_t * timer)
 {
@@ -111,10 +138,11 @@ static void create_home_screen(lv_obj_t * parent)
     lv_obj_set_size(list, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_pad_all(list, 10, 0);
 
-    // Add some example profiles
-    lv_list_add_text(list, "Profile 1");
-    lv_list_add_text(list, "Profile 2");
-    lv_list_add_text(list, "Profile 3");
+    // Add some example profiles + add to obj_lut
+    obj_lut[OBJ_PROFILE_1].obj = lv_list_add_text(list, "Profile 1");
+    obj_lut[OBJ_PROFILE_2].obj = lv_list_add_text(list, "Profile 2");
+    obj_lut[OBJ_PROFILE_3].obj = lv_list_add_text(list, "Profile 3");
+    obj_lut[OBJ_PROFILE_4].obj = lv_list_add_text(list, "Profile 4");
 }
 
 static void create_brew_screen(lv_obj_t * parent)
@@ -191,6 +219,51 @@ static void create_settings_screen(lv_obj_t * parent)
     lv_list_add_text(sys_list, "About");
 }
 
+static void create_popup_window(void) {
+    // Create popup window (initially hidden)
+    popup_window = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(popup_window, 400, 200);
+    lv_obj_center(popup_window);
+    lv_obj_add_flag(popup_window, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(popup_window);  // Ensure popup is on top
+
+    // Set up flex layout for popup window
+    lv_obj_set_flex_flow(popup_window, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(popup_window, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_row(popup_window, 10, 0);  // Add vertical spacing between elements
+
+    // Create the message label
+    lv_obj_t * label = lv_label_create(popup_window);
+    lv_label_set_text(label, "");
+    lv_obj_set_width(label, LV_PCT(100));  // Make label take full width
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);  // Center text horizontally
+    obj_lut[OBJ_POPUP_MSG].obj = label;
+
+    // Create close button
+    lv_obj_t * btn = lv_btn_create(popup_window);
+    lv_obj_set_size(btn, 80, 30);
+    lv_obj_t * btn_label = lv_label_create(btn);
+    lv_label_set_text(btn_label, "Close");
+    lv_obj_center(btn_label);
+    lv_obj_add_event_cb(btn, close_modal_cb, LV_EVENT_CLICKED, NULL);
+}
+
+/**
+ * Callback for the close button
+ */
+static void close_modal_cb(lv_event_t * e) {
+    lv_gaggiuino_hide_popup();
+}
+
+static lv_obj_t * find_object(const char* object) {
+    for (int i = 0; obj_lut[i].name != NULL; i++) {
+        if (strcmp(obj_lut[i].name, object) == 0) {
+            return obj_lut[i].obj;
+        }
+    }
+    return NULL;
+}
+
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
@@ -206,6 +279,51 @@ void lv_gaggiuino_ui_init(void)
     lv_obj_set_style_bg_color(splash_screen, lv_color_hex(0xFFFFFF), 0);
     create_splash_screen(splash_screen);
 
+    // Create popup window
+    create_popup_window();
+
     // Create timer to switch to main UI
     splash_timer = lv_timer_create(splash_timer_cb, SPLASH_DISPLAY_TIME, NULL);
+}
+
+/**
+ * Update the text of an object
+ * @param object The object to update
+ * @param text The text to update the object with
+ */
+void lv_gaggiuino_update_text(const char* object, const char* text) {
+    printf("Updating text for object: %s to %s\n", object, text);
+    lv_obj_t * obj = find_object(object);
+    if (obj != NULL) {
+        lv_label_set_text(obj, text);
+    }
+}
+
+/**
+ * Show a modal message window
+ * @param message The message to display
+ */
+void lv_gaggiuino_show_popup(void) {
+    lv_obj_clear_flag(popup_window, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(popup_window);  // Ensure popup is on top when shown
+}
+
+/**
+ * Hide the modal message window
+ */
+void lv_gaggiuino_hide_popup(void) {
+    lv_obj_add_flag(popup_window, LV_OBJ_FLAG_HIDDEN);
+}
+
+/**
+ * Show a page
+ * @param page The page to show
+ */
+void lv_gaggiuino_show_page(const char *page)
+{
+    // lv_tabview_set_tab_act(tv, page, LV_ANIM_OFF);
+    if (strcmp(page, "popupMSG") == 0)
+    {
+        lv_gaggiuino_show_popup();
+    }
 }
