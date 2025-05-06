@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef NATIVE_LINUX
+#ifdef NATIVE_BUILD
 #include <SDL2/SDL.h>
 #include "lvgl.h"
 

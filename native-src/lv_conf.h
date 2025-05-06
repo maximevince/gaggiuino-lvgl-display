@@ -12,7 +12,8 @@
  */
 
 /* clang-format off */
-#if 1 /* Enable content */
+#if 1 /* Set this to "1" to enable content */
+
 #ifndef LV_CONF_H
 #define LV_CONF_H
 
@@ -39,7 +40,7 @@
  * - LV_STDLIB_RTTHREAD:    RT-Thread implementation
  * - LV_STDLIB_CUSTOM:      Implement the functions externally
  */
-#define LV_USE_STDLIB_MALLOC    LV_STDLIB_CLIB
+#define LV_USE_STDLIB_MALLOC    LV_STDLIB_BUILTIN
 
 /** Possible values
  * - LV_STDLIB_BUILTIN:     LVGL's built in implementation
@@ -48,7 +49,7 @@
  * - LV_STDLIB_RTTHREAD:    RT-Thread implementation
  * - LV_STDLIB_CUSTOM:      Implement the functions externally
  */
-#define LV_USE_STDLIB_STRING    LV_STDLIB_CLIB
+#define LV_USE_STDLIB_STRING    LV_STDLIB_BUILTIN
 
 /** Possible values
  * - LV_STDLIB_BUILTIN:     LVGL's built in implementation
@@ -57,7 +58,7 @@
  * - LV_STDLIB_RTTHREAD:    RT-Thread implementation
  * - LV_STDLIB_CUSTOM:      Implement the functions externally
  */
-#define LV_USE_STDLIB_SPRINTF   LV_STDLIB_CLIB
+#define LV_USE_STDLIB_SPRINTF   LV_STDLIB_BUILTIN
 
 #define LV_STDINT_INCLUDE       <stdint.h>
 #define LV_STDDEF_INCLUDE       <stddef.h>
@@ -68,7 +69,7 @@
 
 #if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
     /** Size of memory available for `lv_malloc()` in bytes (>= 2kB) */
-    #define LV_MEM_SIZE (128 * 1024U)          /**< [bytes] */
+    #define LV_MEM_SIZE (64 * 1024U)          /**< [bytes] */
 
     /** Size of the memory expand for `lv_malloc()` in bytes */
     #define LV_MEM_POOL_EXPAND_SIZE 0
@@ -106,6 +107,7 @@
  * - LV_OS_MQX
  * - LV_OS_SDL2
  * - LV_OS_CUSTOM */
+#define LV_OS_SDL2 1
 #define LV_USE_OS   LV_OS_SDL2
 
 #if LV_USE_OS == LV_OS_CUSTOM
@@ -168,6 +170,7 @@
     #define LV_DRAW_SW_SUPPORT_RGB888       1
     #define LV_DRAW_SW_SUPPORT_XRGB8888     1
     #define LV_DRAW_SW_SUPPORT_ARGB8888     1
+    #define LV_DRAW_SW_SUPPORT_ARGB8888_PREMULTIPLIED 1
     #define LV_DRAW_SW_SUPPORT_L8           1
     #define LV_DRAW_SW_SUPPORT_AL88         1
     #define LV_DRAW_SW_SUPPORT_A8           1
@@ -213,7 +216,7 @@
     #endif
 
     /** Enable drawing complex gradients in software: linear at an angle, radial or conical */
-    #define LV_USE_DRAW_SW_COMPLEX_GRADIENTS    1
+    #define LV_USE_DRAW_SW_COMPLEX_GRADIENTS    0
 
 #endif
 
@@ -351,7 +354,7 @@
  *-----------*/
 
 /** Enable log module */
-#define LV_USE_LOG 1
+#define LV_USE_LOG 0
 #if LV_USE_LOG
     /** Set value to one of the following levels of logging detail:
      *  - LV_LOG_LEVEL_TRACE    Log detailed information.
@@ -364,7 +367,7 @@
 
     /** - 1: Print log with 'printf';
      *  - 0: User needs to register a callback with `lv_log_register_print_cb()`. */
-    #define LV_LOG_PRINTF 1
+    #define LV_LOG_PRINTF 0
 
     /** Set callback to print logs.
      *  E.g `my_print`. The prototype should be `void my_print(lv_log_level_t level, const char * buf)`.
@@ -399,9 +402,9 @@
  * If LV_USE_LOG is enabled, an error message will be printed on failure. */
 #define LV_USE_ASSERT_NULL          1   /**< Check if the parameter is NULL. (Very fast, recommended) */
 #define LV_USE_ASSERT_MALLOC        1   /**< Checks is the memory is successfully allocated or no. (Very fast, recommended) */
-#define LV_USE_ASSERT_STYLE         1
-#define LV_USE_ASSERT_MEM_INTEGRITY 1
-#define LV_USE_ASSERT_OBJ           1
+#define LV_USE_ASSERT_STYLE         0   /**< Check if the styles are properly initialized. (Very fast, recommended) */
+#define LV_USE_ASSERT_MEM_INTEGRITY 0   /**< Check the integrity of `lv_mem` after critical operations. (Slow) */
+#define LV_USE_ASSERT_OBJ           0   /**< Check the object's type and existence (e.g. not deleted). (Slow) */
 
 /** Add a custom handler when assert happens e.g. to restart MCU. */
 #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
@@ -457,7 +460,7 @@
 #define LV_COLOR_MIX_ROUND_OFS  0
 
 /** Add 2 x 32-bit variables to each `lv_obj_t` to speed up getting style properties */
-#define LV_OBJ_STYLE_CACHE      1
+#define LV_OBJ_STYLE_CACHE      0
 
 /** Add `id` field to `lv_obj_t` */
 #define LV_USE_OBJ_ID           0
@@ -551,14 +554,16 @@
 #define LV_ATTRIBUTE_EXTERN_DATA
 
 /** Use `float` as `lv_value_precise_t` */
-#define LV_USE_FLOAT            1
+#define LV_USE_FLOAT            0
 
 /** Enable matrix support
  *  - Requires `LV_USE_FLOAT = 1` */
-#define LV_USE_MATRIX           1
+#define LV_USE_MATRIX           0
 
 /** Include `lvgl_private.h` in `lvgl.h` to access internal data and functions by default */
-#define LV_USE_PRIVATE_API      0
+#ifndef LV_USE_PRIVATE_API
+    #define LV_USE_PRIVATE_API  0
+#endif
 
 /*==================
  *   FONT USAGE
@@ -568,34 +573,36 @@
  * https://fonts.google.com/specimen/Montserrat */
 #define LV_FONT_MONTSERRAT_8  0
 #define LV_FONT_MONTSERRAT_10 0
-#define LV_FONT_MONTSERRAT_12 1
+#define LV_FONT_MONTSERRAT_12 0
 #define LV_FONT_MONTSERRAT_14 1
-#define LV_FONT_MONTSERRAT_16 1
-#define LV_FONT_MONTSERRAT_18 1
-#define LV_FONT_MONTSERRAT_20 1
-#define LV_FONT_MONTSERRAT_22 1
-#define LV_FONT_MONTSERRAT_24 1
-#define LV_FONT_MONTSERRAT_26 1
-#define LV_FONT_MONTSERRAT_28 1
-#define LV_FONT_MONTSERRAT_30 1
-#define LV_FONT_MONTSERRAT_32 1
-#define LV_FONT_MONTSERRAT_34 1
-#define LV_FONT_MONTSERRAT_36 1
-#define LV_FONT_MONTSERRAT_38 1
-#define LV_FONT_MONTSERRAT_40 1
-#define LV_FONT_MONTSERRAT_42 1
-#define LV_FONT_MONTSERRAT_44 1
-#define LV_FONT_MONTSERRAT_46 1
-#define LV_FONT_MONTSERRAT_48 1
+#define LV_FONT_MONTSERRAT_16 0
+#define LV_FONT_MONTSERRAT_18 0
+#define LV_FONT_MONTSERRAT_20 0
+#define LV_FONT_MONTSERRAT_22 0
+#define LV_FONT_MONTSERRAT_24 0
+#define LV_FONT_MONTSERRAT_26 0
+#define LV_FONT_MONTSERRAT_28 0
+#define LV_FONT_MONTSERRAT_30 0
+#define LV_FONT_MONTSERRAT_32 0
+#define LV_FONT_MONTSERRAT_34 0
+#define LV_FONT_MONTSERRAT_36 0
+#define LV_FONT_MONTSERRAT_38 0
+#define LV_FONT_MONTSERRAT_40 0
+#define LV_FONT_MONTSERRAT_42 0
+#define LV_FONT_MONTSERRAT_44 0
+#define LV_FONT_MONTSERRAT_46 0
+#define LV_FONT_MONTSERRAT_48 0
 
 /* Demonstrate special features */
-#define LV_FONT_MONTSERRAT_28_COMPRESSED 1
-#define LV_FONT_DEJAVU_16_PERSIAN_HEBREW 1
-#define LV_FONT_SIMSUN_14_CJK            0  /**< 1000 most common CJK radicals */
-#define LV_FONT_SIMSUN_16_CJK            1
+#define LV_FONT_MONTSERRAT_28_COMPRESSED    0  /**< bpp = 3 */
+#define LV_FONT_DEJAVU_16_PERSIAN_HEBREW    0  /**< Hebrew, Arabic, Persian letters and all their forms */
+#define LV_FONT_SIMSUN_14_CJK               0  /**< 1000 most common CJK radicals */
+#define LV_FONT_SIMSUN_16_CJK               0  /**< 1000 most common CJK radicals */
+#define LV_FONT_SOURCE_HAN_SANS_SC_14_CJK   0  /**< 1338 most common CJK radicals */
+#define LV_FONT_SOURCE_HAN_SANS_SC_16_CJK   0  /**< 1338 most common CJK radicals */
 
 /** Pixel perfect monospaced fonts */
-#define LV_FONT_UNSCII_8  1
+#define LV_FONT_UNSCII_8  0
 #define LV_FONT_UNSCII_16 0
 
 /** Optionally declare custom fonts here.
@@ -615,7 +622,7 @@
 /** Enable handling large font and/or fonts with a lot of characters.
  *  The limit depends on the font size, font face and bpp.
  *  A compiler error will be triggered if a font needs it. */
-#define LV_FONT_FMT_TXT_LARGE 1
+#define LV_FONT_FMT_TXT_LARGE 0
 
 /** Enables/disables support for compressed fonts. */
 #define LV_USE_FONT_COMPRESSED 0
@@ -735,7 +742,7 @@
 
 #define LV_USE_LIST       1
 
-#define LV_USE_LOTTIE     1
+#define LV_USE_LOTTIE     0  /**< Requires: lv_canvas, thorvg */
 
 #define LV_USE_MENU       1
 
@@ -772,6 +779,8 @@
 
 #define LV_USE_WIN        1
 
+#define LV_USE_3DTEXTURE  0
+
 /*==================
  * THEMES
  *==================*/
@@ -781,7 +790,7 @@
 #define LV_USE_THEME_DEFAULT 1
 #if LV_USE_THEME_DEFAULT
     /** 0: Light mode; 1: Dark mode */
-    #define LV_THEME_DEFAULT_DARK 1
+    #define LV_THEME_DEFAULT_DARK 0
 
     /** 1: Enable grow on press */
     #define LV_THEME_DEFAULT_GROW 1
@@ -817,12 +826,12 @@
 /** Setting a default driver letter allows skipping the driver prefix in filepaths.
  *  Documentation about how to use the below driver-identifier letters can be found at
  *  https://docs.lvgl.io/master/details/main-modules/fs.html#lv-fs-identifier-letters . */
-#define LV_FS_DEFAULT_DRIVER_LETTER 'A'
+#define LV_FS_DEFAULT_DRIVER_LETTER '\0'
 
 /** API for fopen, fread, etc. */
-#define LV_USE_FS_STDIO 1
+#define LV_USE_FS_STDIO 0
 #if LV_USE_FS_STDIO
-    #define LV_FS_STDIO_LETTER 'A'
+    #define LV_FS_STDIO_LETTER '\0'     /**< Set an upper-case driver-identifier letter for this driver (e.g. 'A'). */
     #define LV_FS_STDIO_PATH ""         /**< Set the working directory. File/directory paths will be appended to it. */
     #define LV_FS_STDIO_CACHE_SIZE 0    /**< >0 to cache this number of bytes in lv_fs_read() */
 #endif
@@ -885,17 +894,17 @@
 #endif
 
 /** LODEPNG decoder library */
-#define LV_USE_LODEPNG 1
+#define LV_USE_LODEPNG 0
 
 /** PNG decoder(libpng) library */
 #define LV_USE_LIBPNG 0
 
 /** BMP decoder library */
-#define LV_USE_BMP 1
+#define LV_USE_BMP 0
 
 /** JPG + split JPG decoder library.
  *  Split JPG is a custom format optimized for embedded systems. */
-#define LV_USE_TJPGD 1
+#define LV_USE_TJPGD 0
 
 /** libjpeg-turbo decoder library.
  *  - Supports complete JPEG specifications and high-performance JPEG decoding. */
@@ -910,16 +919,16 @@
 
 
 /** Decode bin images to RAM */
-#define LV_BIN_DECODER_RAM_LOAD 1
+#define LV_BIN_DECODER_RAM_LOAD 0
 
 /** RLE decompress library */
-#define LV_USE_RLE 1
+#define LV_USE_RLE 0
 
 /** QR code library */
-#define LV_USE_QRCODE 1
+#define LV_USE_QRCODE 0
 
 /** Barcode code library */
-#define LV_USE_BARCODE 1
+#define LV_USE_BARCODE 0
 
 /** FreeType library */
 #define LV_USE_FREETYPE 0
@@ -933,7 +942,7 @@
 #endif
 
 /** Built-in TTF decoder */
-#define LV_USE_TINY_TTF 1
+#define LV_USE_TINY_TTF 0
 #if LV_USE_TINY_TTF
     /* Enable loading TTF data from files */
     #define LV_TINY_TTF_FILE_SUPPORT 0
@@ -945,16 +954,16 @@
 
 /** Enable Vector Graphic APIs
  *  - Requires `LV_USE_MATRIX = 1` */
-#define LV_USE_VECTOR_GRAPHIC  1
+#define LV_USE_VECTOR_GRAPHIC  0
 
 /** Enable ThorVG (vector graphics library) from the src/libs folder */
-#define LV_USE_THORVG_INTERNAL 1 
+#define LV_USE_THORVG_INTERNAL 0
 
 /** Enable ThorVG by assuming that its installed and linked to the project */
 #define LV_USE_THORVG_EXTERNAL 0
 
 /** Use lvgl built-in LZ4 lib */
-#define LV_USE_LZ4_INTERNAL  1
+#define LV_USE_LZ4_INTERNAL  0
 
 /** Use external LZ4 library */
 #define LV_USE_LZ4_EXTERNAL  0
@@ -1018,6 +1027,7 @@
     #if LV_USE_PROFILER_BUILTIN
         /** Default profiler trace buffer size */
         #define LV_PROFILER_BUILTIN_BUF_SIZE (16 * 1024)     /**< [bytes] */
+        #define LV_PROFILER_BUILTIN_DEFAULT_ENABLE 1
     #endif
 
     /** Header to include for profiler */
@@ -1079,7 +1089,7 @@
 #define LV_USE_FRAGMENT 0
 
 /** 1: Support using images as font in label or span widgets */
-#define LV_USE_IMGFONT 1
+#define LV_USE_IMGFONT 0
 
 /** 1: Enable an observer pattern implementation */
 #define LV_USE_OBSERVER 1
@@ -1113,8 +1123,7 @@
     #define LV_FILE_EXPLORER_QUICK_ACCESS        1
 #endif
 
-/** 1: Enable freetype font manager
- *  - Requires: LV_USE_FREETYPE */
+/** 1: Enable Font manager */
 #define LV_USE_FONT_MANAGER                     0
 #if LV_USE_FONT_MANAGER
 
@@ -1151,8 +1160,6 @@
     #define LV_SDL_FULLSCREEN       0    /**< 1: Make the window full screen by default */
     #define LV_SDL_DIRECT_EXIT      1    /**< 1: Exit the application when all SDL windows are closed */
     #define LV_SDL_MOUSEWHEEL_MODE  LV_SDL_MOUSEWHEEL_MODE_ENCODER  /*LV_SDL_MOUSEWHEEL_MODE_ENCODER/CROWN*/
-    #define SDL_HOR_RES 480
-    #define SDL_VER_RES 480
 #endif
 
 /** Use X11 to open window on Linux desktop and handle mouse and keyboard */
@@ -1178,8 +1185,9 @@
 #if LV_USE_LINUX_FBDEV
     #define LV_LINUX_FBDEV_BSD           0
     #define LV_LINUX_FBDEV_RENDER_MODE   LV_DISPLAY_RENDER_MODE_PARTIAL
-    #define LV_LINUX_FBDEV_BUFFER_COUNT  2
-    #define LV_LINUX_FBDEV_BUFFER_SIZE   1080
+    #define LV_LINUX_FBDEV_BUFFER_COUNT  0
+    #define LV_LINUX_FBDEV_BUFFER_SIZE   60
+    #define LV_LINUX_FBDEV_MMAP          1
 #endif
 
 /** Use Nuttx to open window and handle touchscreen */
@@ -1226,7 +1234,7 @@
 #define LV_USE_TFT_ESPI         0
 
 /** Driver for evdev input devices */
-#define LV_USE_EVDEV    1
+#define LV_USE_EVDEV    0
 
 /** Driver for libinput input devices */
 #define LV_USE_LIBINPUT    0
@@ -1247,6 +1255,7 @@
 #define LV_USE_ST7789        0
 #define LV_USE_ST7796        0
 #define LV_USE_ILI9341       0
+#define LV_USE_FT81X         0
 
 #if (LV_USE_ST7735 | LV_USE_ST7789 | LV_USE_ST7796 | LV_USE_ILI9341)
     #define LV_USE_GENERIC_MIPI 1
@@ -1291,30 +1300,30 @@
 *==================*/
 
 /** Enable examples to be built with the library. */
-#define LV_BUILD_EXAMPLES 0
+#define LV_BUILD_EXAMPLES 1
 
 /*===================
  * DEMO USAGE
  ====================*/
 
 /** Show some widgets. This might be required to increase `LV_MEM_SIZE`. */
-#define LV_USE_DEMO_WIDGETS 1
+#define LV_USE_DEMO_WIDGETS 0
 
 /** Demonstrate usage of encoder and keyboard. */
 #define LV_USE_DEMO_KEYPAD_AND_ENCODER 0
 
 /** Benchmark your system */
-#define LV_USE_DEMO_BENCHMARK 1
+#define LV_USE_DEMO_BENCHMARK 0
 
 /** Render test for each primitive.
  *  - Requires at least 480x272 display. */
-#define LV_USE_DEMO_RENDER 1
+#define LV_USE_DEMO_RENDER 0
 
 /** Stress test for LVGL */
-#define LV_USE_DEMO_STRESS 1
+#define LV_USE_DEMO_STRESS 0
 
 /** Music player demo */
-#define LV_USE_DEMO_MUSIC 1
+#define LV_USE_DEMO_MUSIC 0
 #if LV_USE_DEMO_MUSIC
     #define LV_DEMO_MUSIC_SQUARE    0
     #define LV_DEMO_MUSIC_LANDSCAPE 0
@@ -1323,20 +1332,24 @@
     #define LV_DEMO_MUSIC_AUTO_PLAY 0
 #endif
 
-/** Flex layout demo */
-#define LV_USE_DEMO_FLEX_LAYOUT     1
-
-/** Smart-phone like multi-language demo */
-#define LV_USE_DEMO_MULTILANG       1
-
-/** Widget transformation demo */
-#define LV_USE_DEMO_TRANSFORM       1
-
-/** Demonstrate scroll settings */
-#define LV_USE_DEMO_SCROLL          1
-
 /** Vector graphic demo */
 #define LV_USE_DEMO_VECTOR_GRAPHIC  0
+
+/*---------------------------
+ * Demos from lvgl/lv_demos
+  ---------------------------*/
+
+/** Flex layout demo */
+#define LV_USE_DEMO_FLEX_LAYOUT     0
+
+/** Smart-phone like multi-language demo */
+#define LV_USE_DEMO_MULTILANG       0
+
+/** Widget transformation demo */
+#define LV_USE_DEMO_TRANSFORM       0
+
+/** Demonstrate scroll settings */
+#define LV_USE_DEMO_SCROLL          0
 
 /*E-bike demo with Lottie animations (if LV_USE_LOTTIE is enabled)*/
 #define LV_USE_DEMO_EBIKE           0
@@ -1345,7 +1358,7 @@
 #endif
 
 /** High-resolution demo */
-#define LV_USE_DEMO_HIGH_RES        1
+#define LV_USE_DEMO_HIGH_RES        0
 
 /* Smart watch demo */
 #define LV_USE_DEMO_SMARTWATCH      0

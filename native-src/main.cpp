@@ -1,13 +1,30 @@
 #include <unistd.h>
 #define SDL_MAIN_HANDLED        /*To fix SDL's "undefined reference to WinMain" issue*/
 #include <SDL2/SDL.h>
+#include "drivers/sdl/lv_sdl_mouse.h"
+#include "drivers/sdl/lv_sdl_mousewheel.h"
+#include "drivers/sdl/lv_sdl_keyboard.h"
+
 #include "lvgl.h"
 #include "lv_demo_widgets.h"
-#include "lv_drivers/sdl/sdl.h"
+// #include "lv_drivers/sdl/sdl.h"
 #include "lv_gaggiuino_ui.h"
-#include <argparse/argparse.hpp>
 #include "serial.h"
 #include "nextion_parser.h"
+#if 0
+#include <argparse/argparse.hpp>
+#else
+#include <string>
+#endif
+
+#define SDL_HOR_RES 480
+#define SDL_VER_RES 480
+
+static lv_display_t *lvDisplay;
+static lv_indev_t *lvMouse;
+static lv_indev_t *lvMouseWheel;
+static lv_indev_t *lvKeyboard;
+
 
 #if LV_USE_LOG != 0
 static void lv_log_print_g_cb(const char * buf)
@@ -18,29 +35,26 @@ static void lv_log_print_g_cb(const char * buf)
 
 void lv_app_init(void)
 {
-    static lv_color_t buf1[480 * 10];
-    static lv_color_t buf2[480 * 10];
-    static lv_disp_draw_buf_t draw_buf;
-    lv_disp_draw_buf_init(&draw_buf, buf1, buf2, 480 * 10);
+    // static lv_color_t buf1[480 * 10];
+    // static lv_color_t buf2[480 * 10];
 
-    static lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.draw_buf = &draw_buf;
-    disp_drv.flush_cb = sdl_display_flush;
-    disp_drv.hor_res = 480;
-    disp_drv.ver_res = 480;
-    lv_disp_drv_register(&disp_drv);
+    // lv_display_t * disp = lv_display_create(480, 480);
+    // lv_display_set_flush_cb(disp, sdl_display_flush);
+    // lv_display_set_draw_buffers(disp, buf1, buf2); //, sizeof(buf1)); //, LV_IMG_CF_TRUE_COLOR);
 
-    // Handle mouse input
-    static lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = sdl_mouse_read;
-    lv_indev_t *mouse_indev = lv_indev_drv_register(&indev_drv);
+    // lv_indev_t * indev = lv_indev_create();
+    // lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    // lv_indev_set_read_cb(indev, sdl_mouse_read);
+
+    lvDisplay = lv_sdl_window_create(SDL_HOR_RES, SDL_VER_RES);
+    lvMouse = lv_sdl_mouse_create();
+    lvMouseWheel = lv_sdl_mousewheel_create();
+    lvKeyboard = lv_sdl_keyboard_create();
 }
 
 int main(int argc, char* argv[])
 {
+#if 0
     argparse::ArgumentParser program("gaggiuino-lvgl-display");
 
     program.add_argument("--port")
@@ -63,6 +77,10 @@ int main(int argc, char* argv[])
 
     std::string port = program.get<std::string>("--port");
     int baudrate = program.get<int>("--baudrate");
+#else
+    std::string port = "";
+    int baudrate = 115200;
+#endif
 
     if (!port.empty()) {
         printf("Listening on port %s at %d baud\n", port.c_str(), baudrate);
@@ -80,9 +98,9 @@ int main(int argc, char* argv[])
     lv_log_register_print_cb(lv_log_print_g_cb);
     #endif
 
-    sdl_init();
+    // sdl_init();
 
-    /* create Widgets on the screen */
+    /* create LVGL display and input devices */
     lv_app_init();
 
     /* Draw demo widgets */
