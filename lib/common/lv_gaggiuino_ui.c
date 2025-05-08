@@ -16,7 +16,7 @@
  *      DEFINES
  *********************/
 #define NAV_BAR_HEIGHT 40
-#define SPLASH_DISPLAY_TIME 2000  // 2 seconds
+#define SPLASH_DISPLAY_TIME 500 //2000  // 2 seconds
 
 /**********************
  *      TYPEDEFS
@@ -75,6 +75,7 @@ static obj_lut_entry_t obj_lut[] = {
     [OBJ_PROFILE_2] = {"home.qPf2", NULL},
     [OBJ_PROFILE_3] = {"home.qPf3", NULL},
     [OBJ_PROFILE_4] = {"home.qPf4", NULL},
+    [OBJ_PROFILE_5] = {"home.qPf5", NULL},
     [OBJ_COUNT] = {NULL, NULL}  // Terminator entry
 };
 
@@ -243,26 +244,57 @@ static void create_plot_screen(lv_obj_t * parent)
 {
     #define MAX_PRESSURE (10)
     #define MAX_TEMP (100)
-    // Create chart
+    #define WIDTH_PCT (88)
+    #define HEIGHT_PCT (90)
+
+    // Create the chart
     lv_obj_t * chart = lv_chart_create(parent);
-    lv_chart_set_point_count(chart, 100);
-    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_X, 0, 60); // seconds range 0-60
-    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, MAX_PRESSURE); // pressure range 0 -> 10
+    lv_obj_set_size(chart, lv_pct(WIDTH_PCT), lv_pct(HEIGHT_PCT));
+    lv_obj_align(chart, LV_ALIGN_TOP_MID, 0, 10); // 10px from top
+    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, MAX_PRESSURE);
     lv_chart_set_range(chart, LV_CHART_AXIS_SECONDARY_Y, 0, MAX_TEMP);
+    lv_chart_set_point_count(chart, 60);
+    lv_obj_set_style_radius(chart, 0, 0);
     lv_chart_set_div_line_count(chart, MAX_PRESSURE + 1, 7); // 7 = 6 x 10 seconds div + 1 line
-    // time axis
-    // lv_chart_set_axis_primary_x_tick_texts(chart, "0\n10\n20\n30\n40\n50\n60", 2, LV_CHART_AXIS_DRAW_LAST_TICK);
-    // lv_chart_set_axis_primary_x_tick_length(chart, 10, 6);
-    
-    // // pressure + temperature axis  
-    // lv_chart_set_axis_primary_y_tick_texts(chart, "0\n2\n4\n6\n8\n10", 2, LV_CHART_AXIS_DRAW_LAST_TICK);
-    // lv_chart_set_axis_primary_y_tick_length(chart, 5, 2);
-    
-    // lv_chart_set_axis_secondary_y_tick_texts(chart, "0\n20\n40\n60\n80\n100", 2, LV_CHART_AXIS_DRAW_LAST_TICK);
-    // lv_chart_set_axis_secondary_y_tick_length(chart, 5, 2);
-    // align chart
-    lv_obj_align(chart, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_size(chart, LV_PCT(90), LV_PCT(90));
+
+    // Create pressure scale (left side)
+    lv_obj_t * scale_pressure = lv_scale_create(parent);
+    lv_scale_set_mode(scale_pressure, LV_SCALE_MODE_VERTICAL_LEFT);
+    lv_obj_set_size(scale_pressure, 25, lv_pct(HEIGHT_PCT));
+    lv_scale_set_range(scale_pressure, 0, MAX_PRESSURE);
+    lv_scale_set_total_tick_count(scale_pressure, MAX_PRESSURE + 1);
+    lv_scale_set_major_tick_every(scale_pressure, 1);
+    lv_obj_set_style_pad_ver(scale_pressure, lv_chart_get_first_point_center_offset(chart) + 2, 0);
+    lv_obj_align_to(scale_pressure, chart, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+
+    // Create temperature scale (right side)
+    lv_obj_t * scale_temp = lv_scale_create(parent);
+    lv_scale_set_mode(scale_temp, LV_SCALE_MODE_VERTICAL_RIGHT);
+    lv_obj_set_size(scale_temp, 25, lv_pct(HEIGHT_PCT));
+    lv_scale_set_range(scale_temp, 0, MAX_TEMP);
+    lv_scale_set_total_tick_count(scale_temp, MAX_TEMP/10 + 1);
+    lv_scale_set_major_tick_every(scale_temp, 1);
+    lv_obj_set_style_pad_ver(scale_temp, lv_chart_get_first_point_center_offset(chart) + 2, 0);
+    lv_obj_align_to(scale_temp, chart, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+
+    // Create bottom scale
+    lv_obj_t * scale_bottom = lv_scale_create(parent);
+    lv_scale_set_mode(scale_bottom, LV_SCALE_MODE_HORIZONTAL_BOTTOM);
+    lv_obj_set_size(scale_bottom, lv_pct(WIDTH_PCT), 25);
+    lv_scale_set_range(scale_bottom, 0, 60); // 0 -> 60 seconds
+    lv_scale_set_total_tick_count(scale_bottom, 6+1);
+    lv_scale_set_major_tick_every(scale_bottom, 1);
+    lv_obj_set_style_pad_hor(scale_bottom, lv_chart_get_first_point_center_offset(chart) + 2, 0);
+    lv_obj_align_to(scale_bottom, chart, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+
+    // Add labels for the scales
+    lv_obj_t * pressure_label = lv_label_create(parent);  // Create in parent instead of scale
+    lv_label_set_text(pressure_label, "BAR");
+    lv_obj_align_to(pressure_label, scale_pressure, LV_ALIGN_OUT_TOP_MID, 0, -5);  // Position above scale
+
+    lv_obj_t * temp_label = lv_label_create(parent);  // Create in parent instead of scale
+    lv_label_set_text(temp_label, "°C");
+    lv_obj_align_to(temp_label, scale_temp, LV_ALIGN_OUT_TOP_MID, 0, -5);  // Position above scale
 }
 
 static void create_clean_screen(lv_obj_t * parent)

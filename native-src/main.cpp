@@ -1,4 +1,5 @@
 #include <unistd.h>
+
 #define SDL_MAIN_HANDLED        /*To fix SDL's "undefined reference to WinMain" issue*/
 #include <SDL2/SDL.h>
 #include "drivers/sdl/lv_sdl_mouse.h"
@@ -6,11 +7,11 @@
 #include "drivers/sdl/lv_sdl_keyboard.h"
 
 #include "lvgl.h"
-#include "lv_demo_widgets.h"
-// #include "lv_drivers/sdl/sdl.h"
 #include "lv_gaggiuino_ui.h"
 #include "serial.h"
 #include "nextion_parser.h"
+
+// Argparse does not work on OSX
 #if 0
 #include <argparse/argparse.hpp>
 #else
